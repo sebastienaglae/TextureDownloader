@@ -52,10 +52,12 @@ namespace TextureDownloader.Texture.Utils
     public class Bloc
     {
         private List<(int left, int top)> ps1;
+        private List<int> maxTop = new List<int>();
         private int currentLine = 0;
         private int maxLine = 0;
         private (int left, int top) defaultCursor;
         private static (int left, int top) endCursor;
+        private bool isFree = false;
 
         static Bloc()
         {
@@ -78,11 +80,17 @@ namespace TextureDownloader.Texture.Utils
             for (int i = 0; i < c; i++)
             {
                 ps1.Add(Console.GetCursorPosition());
-                Console.WriteLine(i);
+                maxTop.Add(0);
+                Console.WriteLine();
             }
             Console.WriteLine();
             defaultCursor = Console.GetCursorPosition();
             SetMaxCursor();
+        }
+
+        public bool IsFree()
+        {
+            return isFree;
         }
 
         private void SetMaxCursor()
@@ -91,12 +99,13 @@ namespace TextureDownloader.Texture.Utils
                 endCursor = defaultCursor;
         }
 
-        public async void WriteToBloc(string message)
+        public void WriteToBloc(string message)
         {
             lock (Console.Out)
             {
-                Console.SetCursorPosition(ps1[currentLine].left, ps1[currentLine].top);
+                Console.SetCursorPosition(maxTop[currentLine], ps1[currentLine].top);
                 Debug.ReprintOnSameLine(message);
+                maxTop[currentLine] = Console.CursorLeft;
             }
         }
 
@@ -106,6 +115,22 @@ namespace TextureDownloader.Texture.Utils
             {
                 currentLine++;
             }
+        }
+
+        public void Free()
+        {
+            for (int i = 0; i < maxLine; i++)
+            {
+                currentLine = i;
+                WriteToBloc("");
+            }
+            currentLine = 0;
+            isFree = true;
+        }
+
+        public void UnFree()
+        {
+            isFree = false;
         }
     }
 }

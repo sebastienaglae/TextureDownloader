@@ -29,10 +29,11 @@ namespace TextureDownloader
             string pathManifest = await Download.DownloadManifestFile(textureWeb, new WebClient());
             var (parameters, arguments) = CSV.ReadCsv(pathManifest);
             Resolution[] resolutions = { Resolution.ONE_K };
-            Extension[] extensions = { Extension.JPG };
+            Extension[] extensions = { Extension.ALL };
             Quality[] qualities = { Quality.ALL };
             var textures = TextureRessourcesFactory.CreateTextures(textureWeb, arguments, resolutions, extensions, qualities);
             ShowInfo(textures);
+            Console.ReadKey();
             //await Download.DownloadTextureFileAndConvert(textures, textureWeb, @".\asset\");
             await ThreadManager.CreateAllOperation(textures, textureWeb, @".\asset\");
             await Task.Delay(-1);
