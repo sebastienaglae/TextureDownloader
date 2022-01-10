@@ -58,6 +58,7 @@ namespace TextureDownloader.Texture.Utils
         private (int left, int top) defaultCursor;
         private static (int left, int top) endCursor;
         private bool isFree = false;
+        private static bool isSameLine = false;
 
         static Bloc()
         {
@@ -68,8 +69,15 @@ namespace TextureDownloader.Texture.Utils
             Console.SetCursorPosition(endCursor.left, endCursor.top);
         }
 
+        public static void SameLine(bool sameline)
+        {
+            isSameLine = sameline;
+        }
+
         public Bloc(int c)
         {
+            if (isSameLine)
+                c = 1;
             CreateBloc(c);
         }
 
@@ -111,6 +119,8 @@ namespace TextureDownloader.Texture.Utils
 
         public void NextLine()
         {
+            if (isSameLine)
+                return;
             if (currentLine + 1 < maxLine)
             {
                 currentLine++;

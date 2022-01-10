@@ -25,6 +25,7 @@ namespace TextureDownloader
         }
         private static async Task TexAsync()
         {
+            Console.CursorVisible = false;
             TextureWebsite textureWeb = TextureWebsite.AMBIENT_CG;
             string pathManifest = await Download.DownloadManifestFile(textureWeb, new WebClient());
             var (parameters, arguments) = CSV.ReadCsv(pathManifest);
@@ -33,9 +34,11 @@ namespace TextureDownloader
             Quality[] qualities = { Quality.ALL };
             var textures = TextureRessourcesFactory.CreateTextures(textureWeb, arguments, resolutions, extensions, qualities);
             ShowInfo(textures);
+            Bloc.SameLine(true);
             Console.ReadKey();
             //await Download.DownloadTextureFileAndConvert(textures, textureWeb, @".\asset\");
-            await ThreadManager.CreateAllOperation(textures, textureWeb, @".\asset\");
+            Bloc remain = new Bloc(1);
+            await ThreadManager.CreateAllOperation(textures, textureWeb, @".\asset\", remain);
             await Task.Delay(-1);
         }
 

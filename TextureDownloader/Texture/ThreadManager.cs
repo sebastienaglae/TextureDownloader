@@ -12,7 +12,7 @@ namespace TextureDownloader.Texture
 {
     public static class ThreadManager
     {
-        private static int maxOperation = 5;
+        private static int maxOperation = 15;
         private static List<Thread> threads = new List<Thread>();
         private static List<TextureRessources> texturesToCreate;
         private static List<Bloc> blocs = new List<Bloc>();
@@ -30,7 +30,7 @@ namespace TextureDownloader.Texture
             // Quand un a terminé ajouter une nouvelle task
         }
 
-        public static async Task CreateAllOperation(List<TextureRessources> textures, TextureWebsite textureWebsite, string folder)
+        public static async Task CreateAllOperation(List<TextureRessources> textures, TextureWebsite textureWebsite, string folder, Bloc remain)
         {
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
@@ -42,6 +42,9 @@ namespace TextureDownloader.Texture
             {
                 blocs.Add(new Bloc(6));
             }
+
+
+            remain.WriteToBloc($"{textures.Count} is remaining !");
 
             for (int i = 0; i < maxOperation; i++)
             {
@@ -55,6 +58,7 @@ namespace TextureDownloader.Texture
             {
                 Task finishedTask = await Task.WhenAny(downloadTasks);
                 downloadTasks.Remove(finishedTask);
+                remain.WriteToBloc($"{textures.Count} is remaining !");
 
                 var pickTex = Pick();
                 if (pickTex == null)
