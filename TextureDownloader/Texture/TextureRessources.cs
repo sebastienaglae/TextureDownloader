@@ -10,6 +10,7 @@ namespace TextureDownloader.Texture
         private readonly string ext;
         private readonly string size;
         private readonly TextureWebsite textureWebsite;
+        private bool isFinished;
 
         public TextureRessources(string name, string url, string attribute, string ext, string size, TextureWebsite textureWebsite)
         {
@@ -19,6 +20,7 @@ namespace TextureDownloader.Texture
             this.ext = ext;
             this.size = size;
             this.textureWebsite = textureWebsite;
+            this.isFinished = false;
         }
 
         public string Url { get => url; }
@@ -27,5 +29,6 @@ namespace TextureDownloader.Texture
         public string Attribute { get => attribute; }
         public string Size { get => size; }
         public TextureWebsite TextureWebsite { get => textureWebsite; }
+        public bool IsFinished { get => isFinished; set => isFinished = value; }
     }
 }

@@ -8,6 +8,7 @@ namespace TextureDownloader
 {
     public class Program
     {
+        private static string[] finishedTextures;
         public static void Main()
         {
             AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
@@ -26,6 +27,7 @@ namespace TextureDownloader
         private static async Task TexAsync()
         {
             Console.CursorVisible = false;
+            LoadFinishedFile();
             TextureWebsite textureWeb = TextureWebsite.AMBIENT_CG;
             string pathManifest = await Download.DownloadManifestFile(textureWeb, new WebClient());
             var (parameters, arguments) = CSV.ReadCsv(pathManifest);
@@ -33,13 +35,35 @@ namespace TextureDownloader
             Extension[] extensions = { Extension.ALL };
             Quality[] qualities = { Quality.ALL };
             var textures = TextureRessourcesFactory.CreateTextures(textureWeb, arguments, resolutions, extensions, qualities);
+            textures.ForEach(x => x.IsFinished = AlreadyFinished(x));
             ShowInfo(textures);
             Bloc.SameLine(true);
             Console.ReadKey();
-            //await Download.DownloadTextureFileAndConvert(textures, textureWeb, @".\asset\");
             Bloc remain = new Bloc(1);
-            await ThreadManager.CreateAllOperation(textures, textureWeb, @".\asset\", remain);
+            await ThreadManager.CreateAllOperation(textures.FindAll(x => !x.IsFinished), textureWeb, @"D:\Textures\", remain);
             await Task.Delay(-1);
+        }
+
+        private static void LoadFinishedFile()
+        {
+            if (!File.Exists("finished.txt"))
+            {
+                finishedTextures = new string[0];
+                return;
+            }
+            finishedTextures = File.ReadAllLines("finished.txt");
+        }
+
+        private static bool AlreadyFinished(TextureRessources textureRessources)
+        {
+            var name = $"{textureRessources.Name} {textureRessources.Size} {textureRessources.TextureWebsite} {textureRessources.Attribute}";
+            foreach (string finishedTexture in finishedTextures)
+            {
+                if (finishedTexture.Contains(name))
+                    return true;
+            }
+
+            return false;
         }
 
         private static void ShowInfo(List<TextureRessources> tex)

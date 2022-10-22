@@ -12,13 +12,14 @@ namespace TextureDownloader.Texture
 {
     public static class ThreadManager
     {
-        private static int maxOperation = 15;
+        private static int maxOperation = 20;
         private static List<Thread> threads = new List<Thread>();
         private static List<TextureRessources> texturesToCreate;
         private static List<Bloc> blocs = new List<Bloc>();
         private static TextureWebsite textureWebsite;
         private static string folderDownload;
-        static List<Task> downloadTasks = new List<Task>();
+        private static List<Task> downloadTasks = new List<Task>();
+
 
         static async void SetMaxOperation(int i)
         {
@@ -65,9 +66,24 @@ namespace TextureDownloader.Texture
                     break;
 
                 downloadTasks.Add(Create(pickTex, blocs.Where((bloc) => bloc.IsFree()).First()));
+                pickTex.IsFinished = true;
+                SaveFinishedTexture(pickTex);
                 Console.Beep();
             }
         }
+
+        private static void SaveFinishedTexture(TextureRessources textureRessources)
+        {
+            //save in unique file
+            string path = Path.Combine(folderDownload, "finished.txt");
+            if (!File.Exists(path))
+                File.Create(path).Close();
+
+            var name = $"{textureRessources.Name} {textureRessources.Size} {textureRessources.TextureWebsite} {textureRessources.Attribute}";
+            File.AppendAllText(path, $"{name} {Environment.NewLine}");
+        }
+
+
 
         private static async Task Create(TextureRessources textureRessources, Bloc bloc)
         {
