@@ -1,19 +1,14 @@
-﻿namespace TextureDownloader.Texture.Utils
+﻿namespace TextureDownloader.Texture.Utils;
+
+public abstract class CSV
 {
-    public abstract class CSV
+    public static (List<string> parameters, List<List<string>> arguments) ReadCsv(string pathManifest)
     {
-        public static (List<string> parameters, List<List<string>> arguments) ReadCsv(string pathManifest)
-        {
-            List<string> parameters = new();
-            List<List<string>> arguments = new();
-            string[] fileContent = File.ReadAllLines(pathManifest);
-            foreach (string parameter in fileContent[0].Split(","))
-                parameters.Add(parameter);
+        var fileContent = File.ReadAllLines(pathManifest);
+        var parameters = fileContent[0].Split(",").ToList();
 
-            foreach (var line in fileContent.Skip(1))
-                arguments.Add(new List<string>(line.Split(",")));
+        var arguments = fileContent.Skip(1).Select(line => new List<string>(line.Split(","))).ToList();
 
-            return (parameters, arguments);
-        }
+        return (parameters, arguments);
     }
 }

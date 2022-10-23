@@ -1,7 +1,11 @@
-﻿namespace TextureDownloader.Texture.Ambient
+﻿namespace TextureDownloader.Texture.Ambient;
+
+public enum AmbientParameter
 {
-    public enum AmbientParameter
-    {
-        ASSET_ID, DOWNLOAD_ATTRIBUTE, FILE_TYPE, SIZE, DOWNLOAD_LINK, RAW_LINK
-    }
+    ASSET_ID,
+    DOWNLOAD_ATTRIBUTE,
+    FILE_TYPE,
+    SIZE,
+    DOWNLOAD_LINK,
+    RAW_LINK
 }

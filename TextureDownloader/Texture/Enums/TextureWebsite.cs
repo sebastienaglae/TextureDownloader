@@ -1,7 +1,6 @@
-﻿namespace TextureDownloader.Texture.Enums
+﻿namespace TextureDownloader.Texture.Enums;
+
+public enum TextureWebsite
 {
-    public enum TextureWebsite
-    {
-        AMBIENT_CG
-    }
+    AMBIENT_CG
 }
