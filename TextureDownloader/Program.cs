@@ -9,6 +9,7 @@ namespace TextureDownloader;
 public class Program
 {
     private static string[]? finishedTextures;
+    public static readonly string texturePath = @"D:\Textures\";
 
     public static void Main()
     {
@@ -38,20 +39,21 @@ public class Program
         Bloc.SameLine(true);
         Console.ReadKey();
         var remain = new Bloc(1);
-        await ThreadManager.CreateAllOperation(textures.FindAll(x => !x.IsFinished), @"D:\Textures\",
+        await ThreadManager.CreateAllOperation(textures.FindAll(x => !x.IsFinished), texturePath,
             remain);
         await Task.Delay(-1);
     }
 
     private static void LoadFinishedFile()
     {
-        if (!File.Exists("finished.txt"))
+        var path = Path.Combine(texturePath, "finished.txt");
+        if (!File.Exists(path))
         {
             finishedTextures = Array.Empty<string>();
             return;
         }
 
-        finishedTextures = File.ReadAllLines("finished.txt");
+        finishedTextures = File.ReadAllLines(path);
     }
 
     private static bool AlreadyFinished(TextureRessources textureRessources)

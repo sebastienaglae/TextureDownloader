@@ -7,14 +7,12 @@ namespace TextureDownloader.Texture;
 
 public static class ThreadManager
 {
-    private static int maxOperation = 20;
+    private static int maxOperation = 40;
     private static List<TextureRessources>? texturesToCreate;
     private static readonly List<Bloc> Blocs = new();
     private static TextureWebsite textureWebsite;
-    private static string? folderDownload;
     private static readonly List<Task> DownloadTasks = new();
-
-
+    
     private static void SetMaxOperation(int i)
     {
         maxOperation = i;
@@ -32,7 +30,6 @@ public static class ThreadManager
             Directory.CreateDirectory(folder);
 
         texturesToCreate = textures;
-        folderDownload = folder;
 
         for (var i = 0; i < maxOperation + 1; i++) Blocs.Add(new Bloc(6));
 
@@ -44,7 +41,7 @@ public static class ThreadManager
             var pickTex = Pick();
             if (pickTex == null)
                 break;
-
+            
             DownloadTasks.Add(Create(pickTex, Blocs[i]));
         }
 
@@ -59,15 +56,23 @@ public static class ThreadManager
                 break;
 
             DownloadTasks.Add(Create(pickTex, Blocs.First(bloc => bloc.IsFree())));
-            pickTex.IsFinished = true;
-            SaveFinishedTexture(pickTex);
-            Console.Beep();
         }
     }
 
     private static void SaveFinishedTexture(TextureRessources textureRessources)
     {
-        var path = Path.Combine(folderDownload, "finished.txt");
+        var path = Path.Combine(Program.texturePath, "finished.txt");
+        if (!File.Exists(path))
+            File.Create(path).Close();
+
+        var name =
+            $"{textureRessources.Name} {textureRessources.Size} {textureRessources.TextureWebsite} {textureRessources.Attribute}";
+        File.AppendAllText(path, $"{name} {Environment.NewLine}");
+    }
+
+    private static void SaveFinishedTextureError(TextureRessources textureRessources)
+    {
+        var path = Path.Combine(Program.texturePath, "error.txt");
         if (!File.Exists(path))
             File.Create(path).Close();
 
@@ -80,8 +85,9 @@ public static class ThreadManager
     private static async Task Create(TextureRessources textureRessources, Bloc bloc)
     {
         bloc.UnFree();
-        //Debug.Log($"#Texture N°{item.i}/{textureCount}");
-        WebClient webClient = new();
+        try 
+	{	        
+		WebClient webClient = new();
         webClient.DownloadProgressChanged += (_, e) =>
         {
             var sizeMo = (int) (e.TotalBytesToReceive / 1000000);
@@ -89,7 +95,7 @@ public static class ThreadManager
                 $"Downloading File {Ui.GetProgressBar(e.ProgressPercentage, 20)} {e.ProgressPercentage}% (Size: {sizeMo} Mo)");
         };
 
-        var filename = folderDownload +
+        var filename = Program.texturePath +
                        $"{textureRessources.Name}_{textureRessources.Attribute}.{textureRessources.Ext}";
         bloc.WriteToBloc($"Downloading File from {textureWebsite} ({filename}) ...");
         bloc.NextLine();
@@ -115,7 +121,16 @@ public static class ThreadManager
         bloc.WriteToBloc("Successfully converted ambient to Unity");
         if (!resultConvert.isConverted)
             bloc.WriteToBloc("Cannot convert textures to Unity !");
+        await Task.Delay(1000);
+        textureRessources.IsFinished = true;
+        SaveFinishedTexture(textureRessources);
+	}
+	catch (Exception)
+	{
+            SaveFinishedTextureError(textureRessources);
+	}
         bloc.Free();
+
     }
 
     private static TextureRessources? Pick()
