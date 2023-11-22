@@ -9,7 +9,7 @@ namespace TextureDownloader;
 public class Program
 {
     private static string[]? finishedTextures;
-    public static readonly string texturePath = @"D:\Textures\";
+    public static readonly string texturePath = @"/home/aglae/Documents/Textures/";
 
     public static void Main()
     {
@@ -29,8 +29,8 @@ public class Program
         const TextureWebsite textureWeb = TextureWebsite.AMBIENT_CG;
         var pathManifest = await Download.DownloadManifestFile(textureWeb, new WebClient());
         var (_, arguments) = CSV.ReadCsv(pathManifest);
-        Resolution[] resolutions = {Resolution.ONE_K};
-        Extension[] extensions = {Extension.ALL};
+        Resolution[] resolutions = {Resolution.FOUR_K};
+        Extension[] extensions = {Extension.JPG};
         Quality[] qualities = {Quality.ALL};
         var textures =
             TextureRessourcesFactory.CreateTextures(textureWeb, arguments, resolutions, extensions, qualities);

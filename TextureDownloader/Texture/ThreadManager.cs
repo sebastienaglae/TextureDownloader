@@ -12,7 +12,7 @@ public static class ThreadManager
     private static readonly List<Bloc> Blocs = new();
     private static TextureWebsite textureWebsite;
     private static readonly List<Task> DownloadTasks = new();
-    
+
     private static void SetMaxOperation(int i)
     {
         maxOperation = i;
@@ -31,7 +31,7 @@ public static class ThreadManager
 
         texturesToCreate = textures;
 
-        for (var i = 0; i < maxOperation + 1; i++) Blocs.Add(new Bloc(6));
+        for (var i = 0; i < maxOperation + 1; i++) Blocs.Add(new Bloc(20));
 
 
         remain.WriteToBloc($"{textures.Count} is remaining !");
@@ -41,7 +41,7 @@ public static class ThreadManager
             var pickTex = Pick();
             if (pickTex == null)
                 break;
-            
+
             DownloadTasks.Add(Create(pickTex, Blocs[i]));
         }
 
@@ -85,52 +85,56 @@ public static class ThreadManager
     private static async Task Create(TextureRessources textureRessources, Bloc bloc)
     {
         bloc.UnFree();
-        try 
-	{	        
-		WebClient webClient = new();
-        webClient.DownloadProgressChanged += (_, e) =>
+        try
         {
-            var sizeMo = (int) (e.TotalBytesToReceive / 1000000);
-            bloc.WriteToBloc(
-                $"Downloading File {Ui.GetProgressBar(e.ProgressPercentage, 20)} {e.ProgressPercentage}% (Size: {sizeMo} Mo)");
-        };
+            WebClient webClient = new();
+            webClient.DownloadProgressChanged += (_, e) =>
+            {
+                var sizeMo = (int) (e.TotalBytesToReceive / 1000000);
+                bloc.WriteToBloc(
+                    $"Downloading File {Ui.GetProgressBar(e.ProgressPercentage, 20)} {e.ProgressPercentage}% (Size: {sizeMo} Mo)");
+            };
 
-        var filename = Program.texturePath +
-                       $"{textureRessources.Name}_{textureRessources.Attribute}.{textureRessources.Ext}";
-        bloc.WriteToBloc($"Downloading File from {textureWebsite} ({filename}) ...");
-        bloc.NextLine();
-        var path = await Download.DownloadFile(textureRessources.Url, filename,
-            textureWebsite.ToString(), webClient);
-        GC.Collect();
-        bloc.WriteToBloc($"Downloading File {Ui.GetProgressBar(100, 20)} {100}% (State : Finished, Imported) !");
-        bloc.NextLine();
-        bloc.WriteToBloc($"Successfully File {textureWebsite} ({filename}) !");
-        bloc.NextLine();
-        var ambientToUnity = new AmbientToUnity(path, textureRessources);
+            var filename = Program.texturePath +
+                           $"{textureRessources.Name}_{textureRessources.Attribute}.{textureRessources.Ext}";
+            bloc.WriteToBloc($"Downloading File from {textureWebsite} ({filename}) ...");
+            bloc.NextLine();
+            var path = await Download.DownloadFile(textureRessources.Url, filename,
+                textureWebsite.ToString(), webClient);
+            GC.Collect();
+            bloc.WriteToBloc($"Downloading File {Ui.GetProgressBar(100, 20)} {100}% (State : Finished, Imported) !");
+            bloc.NextLine();
+            bloc.WriteToBloc($"Successfully File {textureWebsite} ({filename}) !");
+            bloc.NextLine();
+            var ambientToUnity = new AmbientToUnity(path, textureRessources);
 
-        ambientToUnity.AmbientUnityEvent += (_, e) =>
+            ambientToUnity.AmbientUnityEvent += (_, e) =>
+            {
+                bloc.WriteToBloc($"Converting '{e.Text}' ({e.State}) {Ui.GetProgressBar(e.Progress, 20)}");
+            };
+
+            // bloc.WriteToBloc("Converting ambient to Unity");
+            // bloc.NextLine();
+            // var resultConvert = ambientToUnity.ConvertToUnity();
+            // GC.Collect();
+            // bloc.NextLine();
+            // bloc.WriteToBloc("Successfully converted ambient to Unity");
+            // if (!resultConvert.isConverted)
+            // {
+            //     bloc.WriteToBloc(resultConvert.message);
+            //     await Task.Delay(10000);
+            // }
+
+            await Task.Delay(1000);
+            textureRessources.IsFinished = true;
+            SaveFinishedTexture(textureRessources);
+        }
+        catch (Exception)
         {
-            bloc.WriteToBloc($"Converting '{e.Text}' ({e.State}) {Ui.GetProgressBar(e.Progress, 20)}");
-        };
-
-        bloc.WriteToBloc("Converting ambient to Unity");
-        bloc.NextLine();
-        var resultConvert = ambientToUnity.ConvertToUnity();
-        GC.Collect();
-        bloc.NextLine();
-        bloc.WriteToBloc("Successfully converted ambient to Unity");
-        if (!resultConvert.isConverted)
-            bloc.WriteToBloc("Cannot convert textures to Unity !");
-        await Task.Delay(1000);
-        textureRessources.IsFinished = true;
-        SaveFinishedTexture(textureRessources);
-	}
-	catch (Exception)
-	{
             SaveFinishedTextureError(textureRessources);
-	}
-        bloc.Free();
+        }
 
+        bloc.Free();
     }
 
     private static TextureRessources? Pick()
